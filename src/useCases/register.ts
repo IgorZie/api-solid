@@ -7,28 +7,31 @@ interface IRegisterUseCase {
     password: string
 }
 
-export async function registerUseCase({
-    name,
-    email,
-    password
-}: IRegisterUseCase) {
-    const password_hash = await hash(password, 6)
+export class RegisterUseCase {
+    constructor(private usersRepository: any) {}
 
-    const userWithSameEmail = await prisma.user.findUnique({
-        where: {
-            email
+    async execute({
+        name,
+        email,
+        password
+    }: IRegisterUseCase) {
+        const password_hash = await hash(password, 6)
+    
+        const userWithSameEmail = await prisma.user.findUnique({
+            where: {
+                email
+            }
+        })
+    
+        if (userWithSameEmail){
+            throw new Error('E-mail já cadastrado')
         }
-    })
-
-    if (userWithSameEmail){
-        throw new Error('E-mail já cadastrado')
-    }
-
-    await prisma.user.create({
-        data: {
+    
+        await this.usersRepository.create({
             name,
             email,
             password_hash
-        }
-    })
+        })
+    
+    }
 }
